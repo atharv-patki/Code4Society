@@ -239,12 +239,6 @@ Or with Gunicorn: `gunicorn -w 4 -b 0.0.0.0:8000 main:app`
 
 ---
 
-## ⚖️ License
-
-MIT
-
----
-
 ## 🤝 Support
 
 Check troubleshooting above or refer to documentation links.
