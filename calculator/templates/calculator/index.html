@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Carbon Track - Carbon Footprint Estimator</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+
+:root {
+  --green: #39ff14;
+  --green-dim: #1a7a00;
+  --bg: #0a0e0a;
+  --card: #0f160f;
+  --card2: #111811;
+  --border: #1a2e1a;
+  --border2: #213521;
+  --text: #d4ecd4;
+  --muted: #4a7a4a;
+  --font: 'Times New Roman', Times, serif;
+  --mono: 'Times New Roman', Times, serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  min-height: 100vh;
+  background-image:
+    radial-gradient(ellipse 60% 40% at 20% 10%, rgba(57,255,20,0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 30% at 80% 80%, rgba(57,255,20,0.03) 0%, transparent 50%);
+}
+
+/* NAV */
+nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 48px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: rgba(10,14,10,0.92);
+  backdrop-filter: blur(12px);
+  z-index: 100;
+}
+.nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.nav-brand span:first-child { font-size: 22px; }
+.brand-carbon { color: var(--green); font-weight: 800; font-size: 19px; letter-spacing: 0.02em; }
+.brand-track { color: var(--text); font-weight: 300; font-size: 19px; }
+.nav-links { display: flex; gap: 8px; }
+.nav-btn {
+  background: transparent;
+  border: 1px solid var(--border2);
+  color: var(--muted);
+  border-radius: 20px;
+  padding: 8px 22px;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: var(--mono);
+}
+.nav-btn:hover { border-color: var(--green); color: var(--green); }
+.nav-btn.active { border-color: var(--green); color: var(--green); background: rgba(57,255,20,0.06); }
+
+/* LAYOUT */
+.container { max-width: 920px; margin: 0 auto; padding: 44px 20px; }
+
+/* VIEWS */
+.view { display: none; }
+.view.active { display: block; animation: fadeUp 0.5s ease; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
+
+/* HERO */
+.hero { text-align: center; margin-bottom: 52px; }
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: var(--card); border: 1px solid var(--border2);
+  border-radius: 20px; padding: 6px 18px;
+  font-size: 11px; letter-spacing: 0.15em; color: var(--green);
+  font-family: var(--mono); margin-bottom: 24px;
+}
+.hero h1 { font-size: clamp(44px,8vw,76px); font-weight: 900; line-height: 1.05; letter-spacing: -0.025em; }
+.hero h1 .accent { color: var(--green); }
+.hero p { color: var(--muted); font-size: 15px; margin-top: 18px; line-height: 1.6; }
+
+/* GRID */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media(max-width:660px) { .grid-2 { grid-template-columns: 1fr; } nav { padding: 14px 20px; } }
+
+/* CARDS */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px;
+  transition: border-color 0.2s;
+}
+.card:hover { border-color: var(--border2); }
+.card-header {
+  display: flex; align-items: center; gap: 9px;
+  margin-bottom: 20px;
+}
+.card-title { font-size: 12px; letter-spacing: 0.12em; color: var(--green); font-weight: 700; font-family: var(--mono); }
+
+/* FORM */
+.field { margin-bottom: 14px; }
+.field:last-child { margin-bottom: 0; }
+label { font-size: 11px; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 7px; display: block; font-family: var(--mono); }
+input, select {
+  background: #0c130c;
+  border: 1px solid var(--border2);
+  color: var(--text);
+  border-radius: 9px;
+  padding: 11px 14px;
+  width: 100%;
+  font-size: 14px;
+  font-family: var(--mono);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  -webkit-appearance: none;
+}
+input:focus, select:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(57,255,20,0.08);
+}
+select option { background: #0c130c; }
+
+/* Diet preview inside card */
+.diet-preview {
+  margin-top: 14px;
+  background: #0c130c;
+  border-radius: 9px;
+  padding: 12px 14px;
+}
+.diet-preview .dp-label { font-size: 10px; color: var(--muted); letter-spacing: 0.1em; font-family: var(--mono); }
+.diet-preview .dp-val { font-size: 19px; color: var(--green); font-weight: 700; margin-top: 3px; font-family: var(--mono); }
+.diet-preview .dp-desc { font-size: 12px; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+
+/* CALCULATE BTN */
+.btn-wrap { text-align: center; margin: 36px 0; }
+.btn-calc {
+  background: var(--green);
+  color: #060e06;
+  border: none;
+  border-radius: 32px;
+  padding: 17px 54px;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: all 0.2s;
+  font-family: var(--font);
+}
+.btn-calc:hover { transform: scale(1.05); box-shadow: 0 0 36px rgba(57,255,20,0.45); }
+.btn-calc:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+/* RESULTS */
+#results { margin-top: 8px; }
+
+.score-card {
+  text-align: center;
+  padding: 36px 24px;
+  border-radius: 14px;
+  border: 1px solid;
+  margin-bottom: 16px;
+}
+.score-grade { font-size: 84px; font-weight: 900; line-height: 1; font-family: var(--mono); }
+.score-total { font-size: 34px; font-weight: 700; margin-top: 10px; }
+.score-total span { font-size: 15px; color: var(--muted); font-weight: 400; }
+.score-badge {
+  display: inline-block;
+  border-radius: 20px;
+  padding: 6px 22px;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  margin-top: 13px;
+  font-family: var(--mono);
+}
+.score-desc { color: var(--muted); font-size: 13px; margin-top: 10px; }
+.score-compare { color: var(--muted); font-size: 12px; margin-top: 6px; font-family: var(--mono); }
+
+/* BREAKDOWN */
+.breakdown-item { margin-bottom: 18px; }
+.breakdown-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 7px; }
+.breakdown-row .bval { font-family: var(--mono); font-weight: 600; }
+.bar { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; transition: width 1.2s cubic-bezier(0.25,0.46,0.45,0.94); }
+
+/* AI SECTION */
+.ai-loading { text-align: center; padding: 44px; }
+.ai-spinner { font-size: 28px; animation: spin 1s linear infinite; display: inline-block; }
+@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+
+.assessment-card { margin-bottom: 16px; padding: 22px; }
+.section-label { font-size: 11px; letter-spacing: 0.12em; font-family: var(--mono); margin-bottom: 12px; }
+.assessment-text { font-size: 15px; line-height: 1.75; color: #b8d4b8; }
+
+.tips-card .tip-item {
+  display: flex; gap: 13px; margin-bottom: 15px; align-items: flex-start;
+}
+.tip-num {
+  background: var(--green); color: #060e06;
+  border-radius: 50%; width: 24px; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800; flex-shrink: 0; margin-top: 1px;
+  font-family: var(--mono);
+}
+.tip-text { font-size: 13px; line-height: 1.65; color: #b8d4b8; }
+
+.offset-card { text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.tree-icon { font-size: 66px; margin-bottom: 8px; }
+.tree-count { font-size: 54px; font-weight: 900; color: var(--green); font-family: var(--mono); line-height: 1; }
+.tree-label { color: var(--muted); font-size: 13px; margin-top: 4px; }
+.tree-sub {
+  margin-top: 14px; background: #0c130c; border-radius: 9px;
+  padding: 11px 14px; font-size: 12px; color: #b8d4b8; width: 100%; text-align: left;
+  font-family: var(--mono);
+}
+
+/* HISTORY */
+.history-header { margin-bottom: 32px; }
+.history-header h2 { font-size: 30px; font-weight: 800; }
+.history-header h2 .accent { color: var(--green); }
+.history-header p { color: var(--muted); font-size: 13px; margin-top: 6px; font-family: var(--mono); }
+
+.hist-item {
+  display: flex; align-items: center; gap: 18px;
+  padding: 18px 22px; flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.hist-grade-box {
+  border-radius: 9px;
+  padding: 10px 16px;
+  text-align: center;
+  min-width: 58px;
+  flex-shrink: 0;
+}
+.hist-grade { font-size: 26px; font-weight: 900; font-family: var(--mono); }
+.hist-info { flex: 1; min-width: 140px; }
+.hist-total { font-weight: 700; font-size: 17px; }
+.hist-meta { color: var(--muted); font-size: 12px; margin-top: 3px; font-family: var(--mono); }
+.hist-breakdown { display: flex; gap: 18px; flex-wrap: wrap; }
+.hist-stat { text-align: center; }
+.hist-stat-label { font-size: 10px; color: var(--muted); letter-spacing: 0.08em; font-family: var(--mono); }
+.hist-stat-val { font-size: 14px; font-weight: 700; margin-top: 2px; font-family: var(--mono); }
+
+.empty-state { text-align: center; padding: 60px 20px; }
+.empty-state .empty-icon { font-size: 46px; margin-bottom: 16px; }
+.empty-state p { color: var(--muted); font-size: 14px; margin-bottom: 20px; }
+
+/* India badge */
+.india-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(255,153,0,0.1); border: 1px solid rgba(255,153,0,0.3);
+  border-radius: 14px; padding: 3px 10px;
+  font-size: 11px; color: #ffab40; font-family: var(--mono);
+  margin-left: 8px; vertical-align: middle;
+}
+
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-brand" href="#">
+    <span>🌍</span>
+    <span class="brand-carbon">Carbon</span>
+    <span class="brand-track">Track</span>
+  </a>
+  <div class="nav-links">
+    <button class="nav-btn active" id="navCalc" onclick="showView('calculator')">CALCULATOR</button>
+    <button class="nav-btn" id="navHist" onclick="showView('history')">HISTORY</button>
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- CALCULATOR VIEW -->
+  <div class="view active" id="view-calculator">
+
+    <!-- Hero -->
+    <div class="hero">
+      <div class="hero-badge">🌿 HACKATHON PROJECT</div>
+      <h1>Your <span class="accent">Carbon</span><br/>Footprint</h1>
+      <p>Understand the impact of your daily choices and discover<br/>how to reduce your CO₂ emissions.</p>
+    </div>
+
+    <!-- Form -->
+    <form id="calcForm" onsubmit="return false;">
+      {% csrf_token %}
+      <div class="grid-2" style="margin-bottom:16px;">
+
+        <!-- Commute -->
+        <div class="card">
+          <div class="card-header">
+            <span>🚗</span>
+            <span class="card-title">COMMUTE</span>
+          </div>
+          <div class="field">
+            <label>TRANSPORT TYPE</label>
+            {{ form.transport_type }}
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label>DAILY DISTANCE (KM)</label>
+              {{ form.daily_km }}
+            </div>
+            <div class="field">
+              <label>WORKING DAYS/MONTH</label>
+              {{ form.working_days }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Diet -->
+        <div class="card">
+          <div class="card-header">
+            <span>🥗</span>
+            <span class="card-title">DIET</span>
+            <span class="india-badge">🇮🇳 Indian Options</span>
+          </div>
+          <div class="field">
+            <label>DIET TYPE</label>
+            {{ form.diet_type }}
+          </div>
+          <div class="diet-preview">
+            <div class="dp-label">MONTHLY CO₂ ESTIMATE</div>
+            <div class="dp-val" id="dietVal">~75 kg CO₂</div>
+            <div class="dp-desc" id="dietDesc">Balanced mixed diet</div>
+          </div>
+        </div>
+
+        <!-- Energy -->
+        <div class="card">
+          <div class="card-header">
+            <span>⚡</span>
+            <span class="card-title">HOME ENERGY (MONTHLY)</span>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label>ELECTRICITY (KWH)</label>
+              {{ form.electricity_kwh }}
+            </div>
+            <div class="field">
+              <label>GAS / LPG (M³)</label>
+              {{ form.gas_m3 }}
+            </div>
+          </div>
+          <div style="margin-top:12px; font-size:12px; color:var(--muted); font-family:var(--mono);">
+            🇮🇳 India grid factor: 0.82 kg CO₂/kWh
+          </div>
+        </div>
+
+        <!-- Flights -->
+        <div class="card">
+          <div class="card-header" style="justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:9px;">
+              <span>✈️</span>
+              <span class="card-title">FLIGHTS</span>
+            </div>
+            <span style="font-size:11px;color:var(--muted);font-family:var(--mono);">optional</span>
+          </div>
+          <div class="field">
+            <label>MONTHLY FLIGHT DISTANCE (KM)</label>
+            {{ form.flight_km }}
+          </div>
+          <div style="margin-top:10px;font-size:12px;color:var(--muted);font-family:var(--mono);">
+            🇮🇳 Mumbai→Delhi ≈ 1,150 km • Delhi→London ≈ 6,700 km
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-wrap">
+        <button class="btn-calc" id="calcBtn" onclick="doCalculate()">
+          🌍 Calculate My Footprint
+        </button>
+      </div>
+    </form>
+
+    <!-- Results -->
+    <div id="results" class="hidden">
+
+      <!-- Score -->
+      <div class="card score-card" id="scoreCard">
+        <div style="font-size:12px;letter-spacing:0.15em;color:var(--muted);margin-bottom:14px;font-family:var(--mono);">YOUR PERSONAL CARBON SCORE</div>
+        <div class="score-grade" id="scoreGrade">A</div>
+        <div class="score-total" id="scoreTotal">0 <span>kg CO₂/month</span></div>
+        <div class="score-badge" id="scoreBadge">Good</div>
+        <div class="score-desc" id="scoreDesc"></div>
+        <div class="score-compare">🌍 India avg: ~150 kg/month &nbsp;|&nbsp; Paris target: ~83 kg/month</div>
+      </div>
+
+      <!-- Breakdown -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="section-label" style="color:var(--green);">📊 EMISSIONS BREAKDOWN</div>
+        <div id="breakdownItems"></div>
+      </div>
+
+      <!-- AI Loading -->
+      <div class="card ai-loading" id="aiLoading">
+        <div class="ai-spinner">🤖</div>
+        <div style="color:var(--muted);margin-top:14px;font-size:13px;font-family:var(--mono);">AI is analyzing your footprint...</div>
+      </div>
+
+      <!-- AI Results -->
+      <div id="aiResults" class="hidden">
+        <!-- Assessment -->
+        <div class="card assessment-card" style="margin-bottom:16px;border-color:#1e3a4e;">
+          <div class="section-label" style="color:#4aa8aa;">🤖 AI ASSESSMENT</div>
+          <div class="assessment-text" id="assessmentText"></div>
+        </div>
+
+        <div class="grid-2">
+          <!-- Tips -->
+          <div class="card tips-card">
+            <div class="section-label" style="color:var(--green);">💡 TOP RECOMMENDATIONS</div>
+            <div id="tipsList"></div>
+          </div>
+          <!-- Offset -->
+          <div class="card offset-card">
+            <div class="section-label" style="color:var(--green);">🌳 OFFSET RECOMMENDATION</div>
+            <div class="tree-icon">🌳</div>
+            <div class="tree-count" id="treeCount">0</div>
+            <div class="tree-label">trees to plant per year</div>
+            <div class="tree-sub" id="treeSub"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORY VIEW -->
+  <div class="view" id="view-history">
+    <div class="history-header">
+      <h2>My <span class="accent">History</span></h2>
+      <p>Your past carbon footprint calculations</p>
+    </div>
+    <div id="historyList">
+      <div class="card empty-state">
+        <div class="empty-icon">📊</div>
+        <p>Loading your history...</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Diet data from server
+const dietData = {{ diet_data_json|safe }};
+
+// Color map for grades
+const gradeColors = {
+  'A+': '#00ff87', 'A': '#7fff00', 'B': '#ffd700', 'C': '#ff8c00', 'D': '#ff3333'
+};
+
+// Update diet preview on change
+document.getElementById('id_diet_type').addEventListener('change', updateDietPreview);
+updateDietPreview();
+
+function updateDietPreview() {
+  const diet = document.getElementById('id_diet_type').value;
+  const info = dietData[diet];
+  if (info) {
+    document.getElementById('dietVal').textContent = `~${info.monthly_kg} kg CO₂`;
+    document.getElementById('dietDesc').textContent = info.description;
+  }
+}
+
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('nav' + name.charAt(0).toUpperCase() + name.slice(1)).classList.add('active');
+  if (name === 'history') loadHistory();
+}
+
+function getCookie(name) {
+  let cookieValue = null;
+  document.cookie.split(';').forEach(c => {
+    c = c.trim();
+    if (c.startsWith(name + '=')) cookieValue = decodeURIComponent(c.slice(name.length + 1));
+  });
+  return cookieValue;
+}
+
+async function doCalculate() {
+  const btn = document.getElementById('calcBtn');
+  btn.disabled = true;
+  btn.textContent = '🔄 Analyzing...';
+
+  const form = document.getElementById('calcForm');
+  const formData = new FormData(form);
+
+  try {
+    const res = await fetch('/calculate/', {
+      method: 'POST',
+      headers: { 'X-CSRFToken': getCookie('csrftoken') },
+      body: formData
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      displayResults(data);
+    } else {
+      alert('Error: ' + JSON.stringify(data.errors));
+    }
+  } catch(e) {
+    alert('Network error: ' + e.message);
+  }
+
+  btn.disabled = false;
+  btn.textContent = '🌍 Calculate My Footprint';
+}
+
+function displayResults(data) {
+  const results = document.getElementById('results');
+  results.classList.remove('hidden');
+  results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  const color = gradeColors[data.grade] || '#ffd700';
+  const fp = data.footprint;
+
+  // Score card
+  const sc = document.getElementById('scoreCard');
+  sc.style.borderColor = color + '44';
+  sc.style.background = color + '08';
+
+  document.getElementById('scoreGrade').textContent = data.grade;
+  document.getElementById('scoreGrade').style.color = color;
+  document.getElementById('scoreTotal').innerHTML = `${fp.total} <span>kg CO₂/month</span>`;
+
+  const badge = document.getElementById('scoreBadge');
+  badge.textContent = data.label;
+  badge.style.background = color + '22';
+  badge.style.border = `1px solid ${color}44`;
+  badge.style.color = color;
+
+  document.getElementById('scoreDesc').textContent = data.description;
+
+  // Breakdown
+  const items = [
+    { label: `Commute (${data.inputs.transport})`, value: fp.commute, icon: '🚗' },
+    { label: `Diet (${data.inputs.diet})`, value: fp.diet, icon: '🥗' },
+    { label: 'Home Energy', value: fp.energy, icon: '⚡' },
+    { label: 'Flights', value: fp.flight, icon: '✈️' },
+  ];
+
+  const bdEl = document.getElementById('breakdownItems');
+  bdEl.innerHTML = '';
+  items.forEach(item => {
+    const pct = fp.total > 0 ? Math.min(100, (item.value / fp.total) * 100) : 0;
+    bdEl.innerHTML += `
+      <div class="breakdown-item">
+        <div class="breakdown-row">
+          <span>${item.icon} ${item.label}</span>
+          <span class="bval" style="color:${color}">${item.value} kg</span>
+        </div>
+        <div class="bar"><div class="bar-fill" style="width:0%;background:${color}" data-width="${pct}%"></div></div>
+      </div>`;
+  });
+
+  // Animate bars after paint
+  setTimeout(() => {
+    document.querySelectorAll('.bar-fill').forEach(el => {
+      el.style.width = el.dataset.width;
+    });
+  }, 100);
+
+  // Show AI loading
+  document.getElementById('aiLoading').classList.remove('hidden');
+  document.getElementById('aiResults').classList.add('hidden');
+
+  // Since AI was fetched server-side, show immediately
+  if (data.ai_advice) {
+    setTimeout(() => showAI(data.ai_advice, fp.total, color), 800);
+  }
+}
+
+function showAI(advice, total, color) {
+  document.getElementById('aiLoading').classList.add('hidden');
+  document.getElementById('aiResults').classList.remove('hidden');
+
+  document.getElementById('assessmentText').textContent = advice.assessment || '';
+
+  const tipsList = document.getElementById('tipsList');
+  tipsList.innerHTML = '';
+  (advice.tips || []).forEach((tip, i) => {
+    tipsList.innerHTML += `
+      <div class="tip-item">
+        <div class="tip-num">${i + 1}</div>
+        <div class="tip-text">${tip}</div>
+      </div>`;
+  });
+
+  const trees = advice.trees || Math.ceil(total * 12 / 21);
+  document.getElementById('treeCount').textContent = trees;
+  document.getElementById('treeCount').style.color = color;
+  document.getElementById('treeSub').textContent = `to offset your annual footprint of ~${Math.round(total * 12)} kg CO₂`;
+}
+
+async function loadHistory() {
+  const container = document.getElementById('historyList');
+  container.innerHTML = '<div class="card empty-state"><div class="empty-icon">⏳</div><p>Loading...</p></div>';
+  try {
+    const res = await fetch('/history/');
+    const data = await res.json();
+    if (data.calculations.length === 0) {
+      container.innerHTML = `
+        <div class="card empty-state">
+          <div class="empty-icon">📊</div>
+          <p>No calculations yet. Go calculate your footprint!</p>
+          <button class="btn-calc" style="padding:12px 32px;font-size:14px;" onclick="showView('calculator')">Calculate Now</button>
+        </div>`;
+      return;
+    }
+    container.innerHTML = data.calculations.map(c => {
+      const color = gradeColors[c.grade] || '#ffd700';
+      return `
+        <div class="card hist-item" style="margin-bottom:10px;">
+          <div class="hist-grade-box" style="background:${color}22;border:1px solid ${color}44;">
+            <div class="hist-grade" style="color:${color}">${c.grade}</div>
+          </div>
+          <div class="hist-info">
+            <div class="hist-total">${c.total} kg CO₂/month</div>
+            <div class="hist-meta">${c.transport} · ${c.diet} · ${c.date}</div>
+          </div>
+          <div class="hist-breakdown">
+            ${[['COMMUTE', c.commute], ['DIET', c.diet_emit], ['ENERGY', c.energy], ['FLIGHTS', c.flight]].map(([l, v]) => `
+              <div class="hist-stat">
+                <div class="hist-stat-label">${l}</div>
+                <div class="hist-stat-val" style="color:${color}">${v}</div>
+              </div>`).join('')}
+          </div>
+        </div>`;
+    }).join('');
+  } catch(e) {
+    container.innerHTML = '<div class="card empty-state"><p>Error loading history.</p></div>';
+  }
+}
+</script>
+</body>
+</html>
