@@ -1,22 +1,23 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { simulateCarbon } from "../services/api";
 
 export default function WhatIfSimulator({ baseData }) {
   const [transportReduction, setTransportReduction] = useState(0);
+  const [dietChange, setDietChange] = useState(0);
+  const [energyReduction, setEnergyReduction] = useState(0);
   const [result, setResult] = useState(null);
-
   const [loading, setLoading] = useState(false);
-  const runSimulation = async (value) => {
-    setTransportReduction(value);
+
+  const runSimulation = async (transport, diet, energy) => {
     setLoading(true);
 
     try {
       const res = await simulateCarbon({
         base_data: baseData,
         adjustments: {
-          transport_reduction_percent: value,
-          diet_veg_days_per_week: 0,
-          energy_reduction_percent: 0
+          transport_reduction_percent: transport,
+          diet_veg_days_per_week: diet,
+          energy_reduction_percent: energy
         }
       });
       setResult(res.data);
@@ -27,6 +28,11 @@ export default function WhatIfSimulator({ baseData }) {
     }
   };
 
+  // Run simulation whenever any slider changes
+  useEffect(() => {
+    runSimulation(transportReduction, dietChange, energyReduction);
+  }, [transportReduction, dietChange, energyReduction]);
+
   return (
     <div className="card">
       <h2>🧪 What-If Simulator</h2>
@@ -34,6 +40,7 @@ export default function WhatIfSimulator({ baseData }) {
         Explore how lifestyle changes can reduce your carbon footprint
       </p>
 
+      {/* Transport Reduction */}
       <div style={{ marginBottom: "32px" }}>
         <label style={{ marginBottom: "14px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <span>🚗 Reduce transport usage</span>
@@ -44,13 +51,55 @@ export default function WhatIfSimulator({ baseData }) {
           min="0"
           max="50"
           value={transportReduction}
-          onChange={(e) => runSimulation(+e.target.value)}
+          onChange={(e) => setTransportReduction(+e.target.value)}
           disabled={loading}
           style={{ marginBottom: "12px" }}
         />
         <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "#9ca3af", marginTop: "8px" }}>
           <span>No reduction</span>
           <span>Maximum reduction (50%)</span>
+        </div>
+      </div>
+
+      {/* Diet Change */}
+      <div style={{ marginBottom: "32px" }}>
+        <label style={{ marginBottom: "14px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span>🥗 Add vegetarian days per week</span>
+          <span style={{ fontWeight: "800", fontSize: "18px", color: "#06b6d4" }}>{dietChange} days</span>
+        </label>
+        <input
+          type="range"
+          min="0"
+          max="7"
+          value={dietChange}
+          onChange={(e) => setDietChange(+e.target.value)}
+          disabled={loading}
+          style={{ marginBottom: "12px" }}
+        />
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "#9ca3af", marginTop: "8px" }}>
+          <span>No change</span>
+          <span>Full week vegetarian</span>
+        </div>
+      </div>
+
+      {/* Energy Reduction */}
+      <div style={{ marginBottom: "32px" }}>
+        <label style={{ marginBottom: "14px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span>⚡ Reduce electricity usage</span>
+          <span style={{ fontWeight: "800", fontSize: "18px", color: "#8b5cf6" }}>{energyReduction}%</span>
+        </label>
+        <input
+          type="range"
+          min="0"
+          max="40"
+          value={energyReduction}
+          onChange={(e) => setEnergyReduction(+e.target.value)}
+          disabled={loading}
+          style={{ marginBottom: "12px" }}
+        />
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "#9ca3af", marginTop: "8px" }}>
+          <span>No reduction</span>
+          <span>Maximum reduction (40%)</span>
         </div>
       </div>
 

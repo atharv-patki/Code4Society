@@ -22,13 +22,18 @@ export default function Navbar() {
             </Link>
           </li>
           <li>
-            <Link to="/about" onClick={() => setMenuOpen(false)}>
-              About
+            <Link to="/dashboard" onClick={() => setMenuOpen(false)}>
+              Dashboard
             </Link>
           </li>
           <li>
-            <Link to="/dashboard" onClick={() => setMenuOpen(false)}>
-              Dashboard
+            <Link to="/insights" onClick={() => setMenuOpen(false)}>
+              Insights
+            </Link>
+          </li>
+          <li>
+            <Link to="/about" onClick={() => setMenuOpen(false)}>
+              About
             </Link>
           </li>
         </ul>

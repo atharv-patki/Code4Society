@@ -39,13 +39,24 @@ export function estimateCarbon(form) {
 }
 
 export function simulateCarbon(baseData, adjustments) {
-    // copy base breakdown and apply transport reduction
+    // copy base breakdown and apply reductions
     const { transport = 0, diet = 0, energy = 0 } = baseData.breakdown || {};
-    const reductionFactor = 1 - (adjustments.transport_reduction_percent || 0) / 100;
-    const newTransport = transport * reductionFactor;
-    const newTotal = newTransport + diet + energy;
-
+    
+    // Apply transport reduction
+    const transportReductionFactor = 1 - (adjustments.transport_reduction_percent || 0) / 100;
+    const newTransport = transport * transportReductionFactor;
+    
+    // Apply diet change (each veg day reduces diet emissions by ~14%)
+    const dietReductionFactor = 1 - ((adjustments.diet_veg_days_per_week || 0) / 7) * 0.4;
+    const newDiet = diet * dietReductionFactor;
+    
+    // Apply energy reduction
+    const energyReductionFactor = 1 - (adjustments.energy_reduction_percent || 0) / 100;
+    const newEnergy = energy * energyReductionFactor;
+    
+    const newTotal = newTransport + newDiet + newEnergy;
     const originalTotal = transport + diet + energy;
+    
     const reductionPercent = originalTotal ?
         parseFloat(((originalTotal - newTotal) / originalTotal * 100).toFixed(2)) :
         0;

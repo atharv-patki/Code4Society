@@ -102,7 +102,7 @@ function AccuracyBar({ label, description, accuracy, color, delay = 0 }) {
           background: `linear-gradient(90deg, ${color}cc, ${color})`,
           borderRadius: "999px",
           transition: "width 1.2s cubic-bezier(0.4, 0, 0.2, 1)",
-          animation: `expandBar 1.2s ease-out ${delay}s both`,
+          transformOrigin: "left",
         }} />
       </div>
     </div>
