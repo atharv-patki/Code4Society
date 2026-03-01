@@ -1,0 +1,23 @@
+{
+    "name": "carbon-footprint",
+    "version": "1.0.0",
+    "description": "AI-based carbon footprint estimator with FastAPI backend and React frontend",
+    "private": true,
+    "scripts": {
+        "frontend:install": "cd frontend && npm install",
+        "frontend:dev": "cd frontend && npm run dev",
+        "frontend:build": "cd frontend && npm run build",
+        "frontend:preview": "cd frontend && npm run preview",
+        "setup": "npm run frontend:install"
+    },
+    "keywords": [
+        "carbon",
+        "footprint",
+        "sustainability",
+        "ai",
+        "react",
+        "fastapi"
+    ],
+    "author": "",
+    "license": "MIT"
+}
