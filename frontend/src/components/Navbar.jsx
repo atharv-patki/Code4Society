@@ -10,7 +10,7 @@ export default function Navbar() {
         {/* Logo / Title */}
         <div className="nav-logo">
           <Link to="/" style={{ color: "white", textDecoration: "none" }}>
-            🌍 Carbon AI
+            🌍 GreenSteps
           </Link>
         </div>
 
